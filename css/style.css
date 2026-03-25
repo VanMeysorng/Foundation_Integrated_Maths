@@ -761,3 +761,274 @@ canvas#confettiCanvas {
     animation: fadeOut 3s forwards;
     pointer-events: none;
 }
+
+/* Submit Button Styles */
+.submit-btn {
+    background: #4caf50;
+    color: white;
+    border: none;
+    padding: 12px 28px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-family: 'Inter', sans-serif;
+}
+
+.submit-btn:hover {
+    background: #45a049;
+    transform: translateY(-2px);
+}
+
+.submit-btn:active {
+    transform: translateY(0);
+}
+
+/* Disabled state (when no answer selected) */
+.submit-btn:disabled {
+    background: #757575;
+    cursor: not-allowed;
+    opacity: 0.7;
+    transform: none;
+}
+
+/* Active state (when answer is selected) */
+.submit-btn.active {
+    background: #4caf50;
+    cursor: pointer;
+    opacity: 1;
+}
+
+.submit-btn.active:hover {
+    background: #45a049;
+    transform: translateY(-2px);
+}
+
+.submit-btn i {
+    font-size: 1.1rem;
+}
+
+/* Next Button Styles */
+.next-btn {
+    background: #2196f3;
+    color: white;
+    border: none;
+    padding: 12px 28px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-family: 'Inter', sans-serif;
+}
+
+.next-btn:hover {
+    background: #1976d2;
+    transform: translateY(-2px);
+}
+
+.next-btn:active {
+    transform: translateY(0);
+}
+
+.next-btn i {
+    font-size: 1.1rem;
+}
+
+/* Victory Screen Styles - Compact Width */
+.victory-screen {
+    text-align: center;
+    padding: 20px 15px;
+    max-width: 400px;
+    margin: 0 auto;
+    animation: fadeIn 0.3s ease;
+}
+
+.victory-screen i {
+    font-size: 40px;
+    color: #ffd700;
+    margin-bottom: 10px;
+}
+
+.victory-screen h2 {
+    font-size: 24px;
+    margin-bottom: 15px;
+    background: linear-gradient(135deg, #2196f3, #ffd700);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Score Display - Compact */
+.score-display {
+    margin: 15px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.score-circle {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2196f3, #1976d2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    box-shadow: 0 4px 10px rgba(33, 150, 243, 0.3);
+}
+
+.score-number {
+    font-size: 28px;
+    font-weight: bold;
+    color: white;
+    line-height: 1;
+}
+
+.score-total {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.score-percentage {
+    font-size: 16px;
+    font-weight: bold;
+    padding: 4px 12px;
+    border-radius: 20px;
+    display: inline-block;
+    background: rgba(33, 150, 243, 0.1);
+}
+
+/* Message Styling - Compact */
+.victory-screen p {
+    font-size: 13px;
+    margin: 12px 0;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: rgba(33, 150, 243, 0.1);
+    display: inline-block;
+    max-width: 90%;
+}
+
+.victory-screen p i {
+    font-size: 12px;
+    margin-right: 6px;
+    animation: none;
+}
+
+/* Completion Buttons - Compact */
+.completion-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 15px;
+    flex-wrap: wrap;
+}
+
+.completion-buttons .next-btn {
+    width: auto;
+    min-width: 120px;
+    padding: 8px 16px;
+    margin: 0;
+    font-size: 13px;
+}
+
+.completion-buttons .next-btn i {
+    font-size: 12px;
+    margin-right: 6px;
+}
+
+.completion-buttons .next-btn:first-child {
+    background: linear-gradient(135deg, #ff9800, #f57c00);
+}
+
+.completion-buttons .next-btn:first-child:hover {
+    background: linear-gradient(135deg, #f57c00, #ef6c00);
+}
+
+.completion-buttons .next-btn:last-child {
+    background: linear-gradient(135deg, #2196f3, #1976d2);
+}
+
+.completion-buttons .next-btn:last-child:hover {
+    background: linear-gradient(135deg, #1976d2, #0b5e9e);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Dark Theme Adjustments */
+body[data-theme="dark"] .score-circle {
+    background: linear-gradient(135deg, #2196f3, #0b5e9e);
+}
+
+body[data-theme="dark"] .score-percentage {
+    background: rgba(33, 150, 243, 0.2);
+}
+
+body[data-theme="dark"] .victory-screen p {
+    background: rgba(33, 150, 243, 0.15);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .victory-screen {
+        padding: 15px 10px;
+        max-width: 320px;
+    }
+    
+    .victory-screen h2 {
+        font-size: 20px;
+    }
+    
+    .score-circle {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .score-number {
+        font-size: 24px;
+    }
+    
+    .score-total {
+        font-size: 12px;
+    }
+    
+    .score-percentage {
+        font-size: 14px;
+    }
+    
+    .victory-screen p {
+        font-size: 12px;
+    }
+    
+    .completion-buttons .next-btn {
+        min-width: 100px;
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+}
