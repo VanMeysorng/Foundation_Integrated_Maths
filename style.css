@@ -23,7 +23,7 @@ body[data-theme="dark"] {
 body[data-theme="dark"] .math-header,
 body[data-theme="dark"] .topic-card,
 body[data-theme="dark"] .question-card {
-    background: rgba(15, 42, 58, 0.9);
+    background: rgba(15, 42, 58, 0.95);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(52, 152, 219, 0.3);
 }
@@ -32,26 +32,180 @@ body[data-theme="dark"] .card-header {
     background: linear-gradient(135deg, #1e6f9f, #2c8fbf);
 }
 
-/* Light Blue Theme */
+/* Light Blue Theme - IMPROVED READABILITY */
 body[data-theme="light"] {
-    background: linear-gradient(135deg, #e3f2fd 0%, #bbdef5 100%);
-    color: #0a2b3e;
+    background: linear-gradient(135deg, #e8f4ff 0%, #d4e8fc 100%);
+    color: #1a3a4f;
 }
 
-body[data-theme="light"] .math-header,
-body[data-theme="light"] .topic-card,
+body[data-theme="light"] .math-header {
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(10px);
+    border: 1px solid #90caf9;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+body[data-theme="light"] .topic-card {
+    background: rgba(255, 255, 255, 0.98);
+    border: 1px solid #bbdef5;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
 body[data-theme="light"] .question-card {
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(33, 147, 176, 0.3);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.98);
+    border: 1px solid #bbdef5;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
 }
 
 body[data-theme="light"] .card-header {
-    background: linear-gradient(135deg, #2196f3, #42a5f5);
+    background: linear-gradient(135deg, #1976d2, #42a5f5);
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+body[data-theme="light"] .card-header i,
+body[data-theme="light"] .card-header h3 {
+    color: white;
+}
+
+body[data-theme="light"] .card-body {
+    color: #1a3a4f;
+}
+
+body[data-theme="light"] .card-stats {
+    color: #0a4b6e;
+    font-weight: 600;
+}
+
+body[data-theme="light"] .progress-bar {
+    background: #e3f2fd;
+    border: 1px solid #bbdef5;
+}
+
+body[data-theme="light"] .progress-fill {
+    background: linear-gradient(90deg, #1976d2, #42a5f5);
 }
 
 body[data-theme="light"] .stat-card {
-    background: rgba(33, 147, 176, 0.1);
+    background: rgba(25, 118, 210, 0.12);
+    border: 1px solid rgba(25, 118, 210, 0.2);
+    color: #0a4b6e;
+    font-weight: 600;
+}
+
+body[data-theme="light"] .stat-card i {
+    color: #1976d2;
+}
+
+body[data-theme="light"] .option-btn {
+    background: #f8fcff;
+    border: 2px solid #bbdef5;
+    color: #1a3a4f;
+    font-weight: 500;
+}
+
+body[data-theme="light"] .option-btn:hover:not(:disabled) {
+    background: #e3f2fd;
+    border-color: #1976d2;
+    transform: translateX(5px);
+}
+
+body[data-theme="light"] .option-btn.correct-highlight {
+    background: #e8f5e9;
+    border-color: #4caf50;
+    color: #2e7d32;
+}
+
+body[data-theme="light"] .option-btn.wrong-highlight {
+    background: #ffebee;
+    border-color: #f44336;
+    color: #c62828;
+}
+
+body[data-theme="light"] .feedback-correct {
+    background: #e8f5e9;
+    border-left: 4px solid #4caf50;
+    color: #2e7d32;
+}
+
+body[data-theme="light"] .feedback-wrong {
+    background: #ffebee;
+    border-left: 4px solid #f44336;
+    color: #c62828;
+}
+
+body[data-theme="light"] .question-text {
+    background: #f0f8ff;
+    border: 1px solid #bbdef5;
+    color: #0a4b6e;
+    font-weight: 600;
+}
+
+body[data-theme="light"] .back-btn {
+    background: rgba(25, 118, 210, 0.1);
+    border: 1px solid #1976d2;
+    color: #1976d2;
+}
+
+body[data-theme="light"] .back-btn:hover {
+    background: #1976d2;
+    color: white;
+}
+
+body[data-theme="light"] .progress-info {
+    background: rgba(25, 118, 210, 0.12);
+    color: #1976d2;
+    font-weight: 600;
+}
+
+body[data-theme="light"] .topic-title {
+    color: #0a4b6e;
+}
+
+body[data-theme="light"] .status-locked {
+    color: #f57c00;
+    font-weight: 600;
+}
+
+body[data-theme="light"] .status-unlocked {
+    color: #2e7d32;
+    font-weight: 600;
+}
+
+body[data-theme="light"] .status-defeated {
+    color: #f57c00;
+    font-weight: 600;
+}
+
+body[data-theme="light"] .pdf-btn,
+body[data-theme="light"] .theme-btn-small {
+    background: linear-gradient(135deg, #1976d2, #42a5f5);
+    color: white;
+    font-weight: 600;
+}
+
+body[data-theme="light"] .pdf-btn:hover,
+body[data-theme="light"] .theme-btn-small:hover {
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+}
+
+body[data-theme="light"] .next-btn {
+    background: linear-gradient(135deg, #1976d2, #42a5f5);
+    color: white;
+    font-weight: 700;
+}
+
+body[data-theme="light"] .next-btn:hover {
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.4);
+}
+
+body[data-theme="light"] .victory-screen {
+    background: linear-gradient(135deg, #1976d2, #42a5f5);
+    color: white;
+}
+
+body[data-theme="light"] .victory-screen i {
+    color: #ffd966;
 }
 
 /* High Contrast Theme (Blue-based with max readability) */
@@ -74,6 +228,7 @@ body[data-theme="high-contrast"] .card-header {
 body[data-theme="high-contrast"] .option-btn {
     background: #004d73;
     border: 2px solid #4c9aff;
+    color: white;
 }
 
 body[data-theme="high-contrast"] .option-btn:hover {
@@ -106,7 +261,6 @@ body[data-theme="high-contrast"] .feedback-wrong {
     align-items: center;
     flex-wrap: wrap;
     gap: 1rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
 .logo-section {
@@ -149,17 +303,13 @@ body[data-theme="high-contrast"] .feedback-wrong {
 }
 
 .stat-card i {
-    color: #4c9aff;
     font-size: 1rem;
 }
 
 .pdf-btn, .theme-btn-small {
-    background: linear-gradient(135deg, #2196f3, #1976d2);
     border: none;
     padding: 0.5rem 1.2rem;
     border-radius: 2rem;
-    color: white;
-    font-weight: 600;
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
     font-size: 0.9rem;
@@ -167,7 +317,6 @@ body[data-theme="high-contrast"] .feedback-wrong {
 
 .pdf-btn:hover, .theme-btn-small:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
 }
 
 /* Topics Grid */
@@ -187,7 +336,7 @@ body[data-theme="high-contrast"] .feedback-wrong {
 
 .topic-card:hover:not(.locked) {
     transform: translateY(-6px);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
 }
 
 .topic-card.locked {
@@ -221,7 +370,6 @@ body[data-theme="high-contrast"] .feedback-wrong {
 }
 
 .progress-bar {
-    background: rgba(0, 0, 0, 0.2);
     height: 8px;
     border-radius: 4px;
     overflow: hidden;
@@ -230,7 +378,6 @@ body[data-theme="high-contrast"] .feedback-wrong {
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #2196f3, #64b5f6);
     transition: width 0.3s ease;
     border-radius: 4px;
 }
@@ -249,10 +396,6 @@ body[data-theme="high-contrast"] .feedback-wrong {
     font-size: 0.85rem;
     font-weight: 600;
 }
-
-.status-locked { color: #ff8a7a; }
-.status-unlocked { color: #4caf50; }
-.status-defeated { color: #ffc107; }
 
 /* Quiz Arena */
 .quiz-arena {
@@ -296,22 +439,14 @@ body[data-theme="high-contrast"] .feedback-wrong {
 }
 
 .back-btn {
-    background: rgba(33, 150, 243, 0.15);
-    border: 1px solid #2196f3;
     padding: 0.7rem 1.2rem;
     border-radius: 2rem;
-    color: inherit;
     cursor: pointer;
     transition: 0.2s;
     font-weight: 500;
     display: flex;
     align-items: center;
     gap: 0.5rem;
-}
-
-.back-btn:hover {
-    background: #2196f3;
-    color: white;
 }
 
 .topic-title {
@@ -325,7 +460,6 @@ body[data-theme="high-contrast"] .feedback-wrong {
 .progress-info {
     font-size: 1rem;
     font-weight: 600;
-    background: rgba(33, 150, 243, 0.15);
     padding: 0.5rem 1rem;
     border-radius: 2rem;
 }
@@ -336,7 +470,7 @@ body[data-theme="high-contrast"] .feedback-wrong {
     margin: 0 auto;
     border-radius: 1.5rem;
     padding: 2rem;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
 }
 
 .question-text {
@@ -346,7 +480,6 @@ body[data-theme="high-contrast"] .feedback-wrong {
     line-height: 1.5;
     text-align: center;
     padding: 1rem;
-    background: rgba(33, 150, 243, 0.1);
     border-radius: 1rem;
 }
 
@@ -357,7 +490,7 @@ body[data-theme="high-contrast"] .feedback-wrong {
 }
 
 .option-btn {
-    border: 2px solid rgba(33, 150, 243, 0.4);
+    border: 2px solid;
     padding: 1rem 1.2rem;
     border-radius: 1rem;
     font-size: 1rem;
@@ -368,24 +501,10 @@ body[data-theme="high-contrast"] .feedback-wrong {
     align-items: center;
     gap: 1rem;
     font-weight: 500;
-    background: rgba(33, 150, 243, 0.08);
-    color: inherit;
 }
 
 .option-btn:hover:not(:disabled) {
-    background: rgba(33, 150, 243, 0.2);
-    border-color: #2196f3;
     transform: translateX(5px);
-}
-
-.option-btn.correct-highlight {
-    background: rgba(76, 175, 80, 0.2);
-    border-color: #4caf50;
-}
-
-.option-btn.wrong-highlight {
-    background: rgba(244, 67, 54, 0.2);
-    border-color: #f44336;
 }
 
 .feedback {
@@ -397,23 +516,11 @@ body[data-theme="high-contrast"] .feedback-wrong {
     line-height: 1.5;
 }
 
-.feedback-correct {
-    background: rgba(76, 175, 80, 0.15);
-    border-left: 4px solid #4caf50;
-}
-
-.feedback-wrong {
-    background: rgba(244, 67, 54, 0.15);
-    border-left: 4px solid #f44336;
-}
-
 .next-btn {
     width: 100%;
     padding: 1rem;
-    background: linear-gradient(135deg, #2196f3, #1976d2);
     border: none;
     border-radius: 1rem;
-    color: white;
     font-weight: 700;
     font-size: 1rem;
     cursor: pointer;
@@ -423,16 +530,13 @@ body[data-theme="high-contrast"] .feedback-wrong {
 
 .next-btn:hover {
     transform: scale(0.98);
-    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
 }
 
 /* Victory Screen */
 .victory-screen {
     text-align: center;
     padding: 3rem;
-    background: linear-gradient(135deg, #2196f3, #1976d2);
     border-radius: 1.5rem;
-    color: white;
 }
 
 .victory-screen i {
@@ -613,6 +717,10 @@ canvas#confettiCanvas {
     
     .victory-screen h2 {
         font-size: 1.3rem;
+    }
+    
+    .card-header h3 {
+        font-size: 0.9rem;
     }
 }
 
