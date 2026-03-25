@@ -4,7 +4,6 @@
 let topicsState = {};
 let globalStreak = 0;
 let totalPossible = 0;
-let currentUnlockedIndex = 0;
 let currentTopic = null;
 let confettiAnimationId = null;
 let autoAdvanceTimer = null;
@@ -81,6 +80,11 @@ function showUserInfo() {
 
 // Initialize game
 function initGame() {
+    // Randomize question options when game starts
+    if (typeof randomizeAllQuestions === 'function') {
+        randomizeAllQuestions();
+    }
+    
     initializeUser();
     
     totalPossible = 0;
@@ -139,20 +143,19 @@ function addUserControls() {
 
 function updateStats() {
     let totalCorrect = 0;
-    let defeatedCount = 0;
+    let masteredCount = 0;
     for (let tid of TOPIC_ORDER) {
         const state = topicsState[tid];
         if (state) {
             const correct = state.answers.filter(a => a.correct).length;
             totalCorrect += correct;
             // Topic is considered mastered only if ALL answers are correct
-            if (correct === TOPICS[tid].questions.length) defeatedCount++;
+            if (correct === TOPICS[tid].questions.length) masteredCount++;
         }
     }
     document.getElementById('totalScore').innerText = totalCorrect;
-    document.getElementById('topicsComplete').innerText = defeatedCount;
+    document.getElementById('topicsComplete').innerText = masteredCount;
     document.getElementById('streakCount').innerText = globalStreak;
-    currentUnlockedIndex = defeatedCount;
     
     saveProgress();
 }
@@ -170,16 +173,12 @@ function renderDashboard() {
         
         const correctCount = state.answers.filter(a => a.correct).length;
         const totalQs = topic.questions.length;
-        const isDefeated = correctCount === totalQs;
-        const isUnlocked = i <= currentUnlockedIndex;
+        const isMastered = correctCount === totalQs;
+        const progressPercent = (correctCount / totalQs) * 100;
         
         const card = document.createElement('div');
-        card.className = `topic-card ${!isUnlocked ? 'locked' : ''}`;
-        if (isUnlocked) {
-            card.onclick = () => openTopic(tid);
-        }
-        
-        const progressPercent = (correctCount / totalQs) * 100;
+        card.className = `topic-card`; // No locked class anymore
+        card.onclick = () => openTopic(tid); // All topics are clickable
         
         card.innerHTML = `
             <div class="card-header">
@@ -195,8 +194,7 @@ function renderDashboard() {
                     <div class="progress-fill" style="width: ${progressPercent}%"></div>
                 </div>
                 <div class="card-status">
-                    ${!isUnlocked ? '<span class="status-locked"><i class="fas fa-lock"></i> LOCKED</span>' : 
-                      isDefeated ? '<span class="status-defeated"><i class="fas fa-trophy"></i> MASTERED</span>' : 
+                    ${isMastered ? '<span class="status-defeated"><i class="fas fa-trophy"></i> MASTERED</span>' : 
                       '<span class="status-unlocked"><i class="fas fa-play"></i> START CHALLENGE</span>'}
                 </div>
             </div>
@@ -206,11 +204,6 @@ function renderDashboard() {
 }
 
 function openTopic(tid) {
-    const idx = TOPIC_ORDER.indexOf(tid);
-    if (idx > currentUnlockedIndex) {
-        alert("🔒 Complete previous topics first to unlock this challenge!");
-        return;
-    }
     currentTopic = tid;
     selectedAnswerValue = null;
     isProcessing = false;
@@ -254,22 +247,22 @@ function renderQuiz() {
         
         if (percentage >= 80) {
             message = 'Excellent work! You\'ve mastered this topic!';
-            icon = '🏆';
+            icon = 'fa-trophy';
         } else if (percentage >= 60) {
             message = 'Good job! Review the questions you missed to improve.';
-            icon = '👍';
+            icon = 'fa-thumbs-up';
         } else if (percentage >= 40) {
             message = 'Keep practicing! Review the material and try again.';
-            icon = '📚';
+            icon = 'fa-book';
         } else {
             message = 'Don\'t give up! Study the material and try this topic again.';
-            icon = '💪';
+            icon = 'fa-heart';
         }
         
         container.innerHTML = `
             <div class="victory-screen">
-                <i class="fas fa-chart-line" style="font-size: 48px;"></i>
-                <h2>TOPIC COMPLETED!</h2>
+                <i class="fas fa-chart-line"></i>
+                <h2>Topic Completed!</h2>
                 <div class="score-display">
                     <div class="score-circle">
                         <span class="score-number">${score}</span>
@@ -279,8 +272,12 @@ function renderQuiz() {
                 </div>
                 <p><i class="fas ${icon}"></i> ${message}</p>
                 <div class="completion-buttons">
-                    <button class="next-btn" onclick="retryTopic('${currentTopic}')">Retry Topic</button>
-                    <button class="next-btn" onclick="closeArena()">Return to Dashboard</button>
+                    <button class="next-btn" onclick="retryTopic('${currentTopic}')">
+                        <i class="fas fa-redo"></i> Retry Topic
+                    </button>
+                    <button class="next-btn" onclick="closeArena()">
+                        <i class="fas fa-home"></i> Dashboard
+                    </button>
                 </div>
             </div>
         `;
@@ -556,55 +553,827 @@ function triggerConfetti() {
     draw();
 }
 
-function generateReport() {
-    let totalCor = parseInt(document.getElementById('totalScore').innerText);
-    let completed = parseInt(document.getElementById('topicsComplete').innerText);
-    let reportDiv = document.createElement('div');
-    const currentTheme = document.body.getAttribute('data-theme');
-    reportDiv.style.background = currentTheme === 'light' ? '#ffffff' : '#0f2a3a';
-    reportDiv.style.padding = "25px";
-    reportDiv.style.borderRadius = "20px";
-    reportDiv.style.color = currentTheme === 'light' ? '#0a2b3e' : '#e6f3ff';
-    reportDiv.style.fontFamily = "'Inter', sans-serif";
-    reportDiv.style.border = "2px solid #2196f3";
-    reportDiv.innerHTML = `
-        <div style="text-align:center; margin-bottom:20px;">
-            <i class="fas fa-graduation-cap" style="font-size: 40px; color:#2196f3;"></i>
-            <h2 style="color:#2196f3;">NCUK Math Master Report</h2>
-            <p><strong>Student:</strong> ${userId}</p>
+// Add this global variable at the top with other global variables
+let currentReportData = null; // Store report data for detailed view
+
+// Add this function to generate detailed report
+function generateDetailedReport() {
+    if (!userId) return;
+    
+    // Collect all question results
+    const reportData = [];
+    let totalCorrect = 0;
+    let totalQuestions = 0;
+    
+    for (let tid of TOPIC_ORDER) {
+        const topic = TOPICS[tid];
+        const state = topicsState[tid];
+        
+        if (!state) continue;
+        
+        const topicData = {
+            topicId: tid,
+            topicName: topic.name,
+            topicIcon: topic.icon,
+            questions: [],
+            correctCount: 0,
+            totalCount: topic.questions.length
+        };
+        
+        for (let i = 0; i < topic.questions.length; i++) {
+            const question = topic.questions[i];
+            const answer = state.answers[i];
+            const isCorrect = answer.answered && answer.correct;
+            
+            if (isCorrect) totalCorrect++;
+            totalQuestions++;
+            if (isCorrect) topicData.correctCount++;
+            
+            topicData.questions.push({
+                number: i + 1,
+                text: question.text,
+                correctAnswer: question.correct,
+                userAnswer: answer.answered ? (answer.correct ? question.correct : "Incorrect/Not answered correctly") : "Not answered",
+                isCorrect: isCorrect,
+                hint: question.hint,
+                options: question.options
+            });
+        }
+        
+        reportData.push(topicData);
+    }
+    
+    currentReportData = reportData;
+    
+    const percentage = Math.round((totalCorrect / totalQuestions) * 100);
+    const masteredTopics = reportData.filter(t => t.correctCount === t.totalCount).length;
+    
+    // Create report modal
+    const reportModal = document.createElement('div');
+    reportModal.className = 'report-modal';
+    reportModal.innerHTML = `
+        <div class="report-modal-content">
+            <div class="report-modal-header">
+                <h2><i class="fas fa-chart-line"></i> Detailed Progress Report</h2>
+                <button class="close-report-modal">&times;</button>
+            </div>
+            <div class="report-stats">
+                <div class="report-stat-card">
+                    <i class="fas fa-user-graduate"></i>
+                    <div class="report-stat-info">
+                        <span class="report-stat-label">Student</span>
+                        <span class="report-stat-value">${userId}</span>
+                    </div>
+                </div>
+                <div class="report-stat-card">
+                    <i class="fas fa-check-circle"></i>
+                    <div class="report-stat-info">
+                        <span class="report-stat-label">Overall Score</span>
+                        <span class="report-stat-value">${totalCorrect}/${totalQuestions}</span>
+                        <span class="report-stat-percent">(${percentage}%)</span>
+                    </div>
+                </div>
+                <div class="report-stat-card">
+                    <i class="fas fa-trophy"></i>
+                    <div class="report-stat-info">
+                        <span class="report-stat-label">Topics Mastered</span>
+                        <span class="report-stat-value">${masteredTopics}/${TOPIC_ORDER.length}</span>
+                    </div>
+                </div>
+                <div class="report-stat-card">
+                    <i class="fas fa-fire"></i>
+                    <div class="report-stat-info">
+                        <span class="report-stat-label">Current Streak</span>
+                        <span class="report-stat-value">${globalStreak}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="report-topics">
+                ${reportData.map(topic => `
+                    <div class="report-topic-section">
+                        <div class="report-topic-header" onclick="toggleTopicReport('${topic.topicId}')">
+                            <i class="${topic.topicIcon}"></i>
+                            <h3>${topic.topicName}</h3>
+                            <div class="report-topic-score">
+                                <span class="${topic.correctCount === topic.totalCount ? 'mastered' : topic.correctCount > 0 ? 'partial' : 'none'}">
+                                    ${topic.correctCount}/${topic.totalCount} correct
+                                </span>
+                                <i class="fas fa-chevron-down toggle-icon"></i>
+                            </div>
+                        </div>
+                        <div class="report-topic-details" id="report-topic-${topic.topicId}" style="display: none;">
+                            ${topic.questions.map(q => `
+                                <div class="report-question-item ${q.isCorrect ? 'correct' : 'incorrect'}">
+                                    <div class="report-question-header">
+                                        <span class="question-number">Q${q.number}</span>
+                                        <span class="question-status">
+                                            <i class="fas ${q.isCorrect ? 'fa-check-circle' : 'fa-times-circle'}"></i>
+                                            ${q.isCorrect ? 'Correct' : 'Incorrect'}
+                                        </span>
+                                    </div>
+                                    <div class="report-question-text">${q.text}</div>
+                                    <div class="report-answer-details">
+                                        <div class="report-correct-answer">
+                                            <strong>Correct answer:</strong> ${q.correctAnswer}
+                                        </div>
+                                        ${!q.isCorrect ? `
+                                            <div class="report-user-answer">
+                                                <strong>Your answer:</strong> ${q.userAnswer}
+                                            </div>
+                                            <div class="report-hint">
+                                                <strong>Hint:</strong> ${q.hint}
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                    <div class="report-options">
+                                        <strong>Options:</strong>
+                                        <ul>
+                                            ${q.options.map(opt => `
+                                                <li class="${opt === q.correctAnswer ? 'correct-option' : ''}">
+                                                    ${opt === q.correctAnswer ? '✓ ' : '○ '}${opt}
+                                                </li>
+                                            `).join('')}
+                                        </ul>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+            
+            <div class="report-actions">
+                <button class="report-btn print-report-btn" onclick="printReport()">
+                    <i class="fas fa-print"></i> Print Report
+                </button>
+                <button class="report-btn download-report-btn" onclick="downloadReport()">
+                    <i class="fas fa-download"></i> Download Report (JSON)
+                </button>
+                <button class="report-btn close-report-btn" onclick="closeReportModal()">
+                    <i class="fas fa-times"></i> Close
+                </button>
+            </div>
         </div>
-        <p><strong>Final Score:</strong> ${totalCor} / ${totalPossible}</p>
-        <p><strong>Topics Mastered:</strong> ${completed} / 7</p>
-        <p><strong>Current Streak:</strong> ${globalStreak}</p>
-        <hr style="margin:15px 0; border-color:#2196f3;">
-        <p><i class="fas fa-chart-line"></i> Keep practicing to achieve mastery!</p>
-        <p><i class="fas fa-calendar"></i> Report Date: ${new Date().toLocaleDateString()}</p>
-        <p><i class="fas fa-user"></i> Progress is automatically saved for ${userId}</p>
     `;
-    if (typeof html2pdf !== 'undefined') {
-        html2pdf().set({ margin: 0.5, filename: `Math_Master_Report_${userId}.pdf`, image: { type: 'jpeg', quality: 0.98 } }).from(reportDiv).save();
+    
+    document.body.appendChild(reportModal);
+    
+    // Add event listener to close button
+    const closeBtn = reportModal.querySelector('.close-report-modal');
+    closeBtn.onclick = () => closeReportModal();
+    
+    // Click outside to close
+    reportModal.onclick = (e) => {
+        if (e.target === reportModal) {
+            closeReportModal();
+        }
+    };
+}
+
+function toggleTopicReport(topicId) {
+    const details = document.getElementById(`report-topic-${topicId}`);
+    const toggleIcon = document.querySelector(`#report-topic-${topicId}`).previousElementSibling.querySelector('.toggle-icon');
+    
+    if (details.style.display === 'none') {
+        details.style.display = 'block';
+        toggleIcon.style.transform = 'rotate(180deg)';
     } else {
-        console.warn('html2pdf library not loaded');
-        alert('PDF generation requires html2pdf library');
+        details.style.display = 'none';
+        toggleIcon.style.transform = 'rotate(0deg)';
     }
 }
+
+function closeReportModal() {
+    const modal = document.querySelector('.report-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function printReport() {
+    const reportContent = document.querySelector('.report-modal-content').cloneNode(true);
+    const printWindow = window.open('', '_blank');
+    
+    const currentTheme = document.body.getAttribute('data-theme') || 'dark';
+    
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Math Master Report - ${userId}</title>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+            <style>
+                * {
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                }
+                body {
+                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                    padding: 40px;
+                    background: white;
+                    color: #1a3a4f;
+                }
+                .report-stats {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 20px;
+                    margin-bottom: 30px;
+                }
+                .report-stat-card {
+                    background: #f5f5f5;
+                    padding: 20px;
+                    border-radius: 12px;
+                    display: flex;
+                    align-items: center;
+                    gap: 15px;
+                }
+                .report-stat-card i {
+                    font-size: 32px;
+                    color: #2196f3;
+                }
+                .report-stat-info {
+                    display: flex;
+                    flex-direction: column;
+                }
+                .report-stat-label {
+                    font-size: 12px;
+                    color: #666;
+                }
+                .report-stat-value {
+                    font-size: 24px;
+                    font-weight: bold;
+                    color: #2196f3;
+                }
+                .report-topic-section {
+                    margin-bottom: 25px;
+                    border: 1px solid #e0e0e0;
+                    border-radius: 12px;
+                    overflow: hidden;
+                }
+                .report-topic-header {
+                    background: #f8f9fa;
+                    padding: 15px 20px;
+                    display: flex;
+                    align-items: center;
+                    gap: 15px;
+                    cursor: pointer;
+                }
+                .report-topic-header i {
+                    font-size: 24px;
+                    color: #2196f3;
+                }
+                .report-topic-header h3 {
+                    flex: 1;
+                    margin: 0;
+                }
+                .report-topic-score span {
+                    padding: 4px 12px;
+                    border-radius: 20px;
+                    font-size: 12px;
+                    font-weight: bold;
+                }
+                .report-topic-score .mastered {
+                    background: #4caf50;
+                    color: white;
+                }
+                .report-topic-score .partial {
+                    background: #ff9800;
+                    color: white;
+                }
+                .report-question-item {
+                    padding: 20px;
+                    border-bottom: 1px solid #e0e0e0;
+                }
+                .report-question-item.correct {
+                    background: #e8f5e9;
+                }
+                .report-question-item.incorrect {
+                    background: #ffebee;
+                }
+                .report-question-header {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-bottom: 10px;
+                }
+                .question-number {
+                    font-weight: bold;
+                    color: #2196f3;
+                }
+                .question-status {
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+                }
+                .question-status i.fa-check-circle {
+                    color: #4caf50;
+                }
+                .question-status i.fa-times-circle {
+                    color: #f44336;
+                }
+                .report-question-text {
+                    font-weight: 500;
+                    margin-bottom: 10px;
+                }
+                .report-answer-details {
+                    margin: 10px 0;
+                    padding: 10px;
+                    background: rgba(0,0,0,0.05);
+                    border-radius: 8px;
+                }
+                .correct-option {
+                    color: #4caf50;
+                    font-weight: bold;
+                }
+                .report-actions {
+                    margin-top: 30px;
+                    display: flex;
+                    gap: 15px;
+                    justify-content: center;
+                }
+                .report-btn {
+                    padding: 10px 20px;
+                    border: none;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    font-weight: 500;
+                }
+                @media print {
+                    body {
+                        padding: 20px;
+                    }
+                    .report-actions {
+                        display: none;
+                    }
+                    .report-topic-header {
+                        break-inside: avoid;
+                    }
+                    .report-question-item {
+                        break-inside: avoid;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            ${reportContent.outerHTML}
+        </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.print();
+}
+
+function downloadReport() {
+    if (!currentReportData) return;
+    
+    const reportData = {
+        student: userId,
+        date: new Date().toISOString(),
+        globalStreak: globalStreak,
+        totalScore: {
+            correct: Object.values(topicsState).reduce((sum, state) => 
+                sum + state.answers.filter(a => a.correct).length, 0),
+            total: totalPossible
+        },
+        topics: currentReportData.map(topic => ({
+            name: topic.topicName,
+            id: topic.topicId,
+            correctCount: topic.correctCount,
+            totalCount: topic.totalCount,
+            questions: topic.questions.map(q => ({
+                number: q.number,
+                text: q.text,
+                correctAnswer: q.correctAnswer,
+                userAnswer: q.userAnswer,
+                isCorrect: q.isCorrect,
+                hint: q.hint
+            }))
+        }))
+    };
+    
+    const dataStr = JSON.stringify(reportData, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = `Math_Master_Report_${userId}_${new Date().toISOString().split('T')[0]}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+}
+
+// Add this CSS for the report modal
+function addReportStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+        .report-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .report-modal-content {
+            background: var(--card-bg);
+            border-radius: 20px;
+            max-width: 900px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 25px;
+            border: 1px solid var(--card-border);
+            box-shadow: 0 8px 32px var(--shadow);
+        }
+        
+        .report-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--btn-primary);
+        }
+        
+        .report-modal-header h2 {
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .close-report-modal {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+        
+        .close-report-modal:hover {
+            color: #f44336;
+            transform: scale(1.1);
+        }
+        
+        .report-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .report-stat-card {
+            background: var(--stat-card-bg);
+            border: 1px solid var(--stat-card-border);
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .report-stat-card i {
+            font-size: 28px;
+            color: var(--btn-primary);
+        }
+        
+        .report-stat-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .report-stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .report-stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--btn-primary);
+        }
+        
+        .report-stat-percent {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        
+        .report-topic-section {
+            margin-bottom: 20px;
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .report-topic-header {
+            background: var(--option-bg);
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .report-topic-header:hover {
+            background: var(--option-hover);
+        }
+        
+        .report-topic-header i {
+            font-size: 20px;
+            color: var(--btn-primary);
+        }
+        
+        .report-topic-header h3 {
+            flex: 1;
+            margin: 0;
+            color: var(--text-primary);
+            font-size: 16px;
+        }
+        
+        .report-topic-score {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .report-topic-score span {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .report-topic-score .mastered {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .report-topic-score .partial {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .report-topic-score .none {
+            background: #f44336;
+            color: white;
+        }
+        
+        .toggle-icon {
+            transition: transform 0.3s ease;
+        }
+        
+        .report-topic-details {
+            padding: 15px;
+            background: var(--card-bg);
+        }
+        
+        .report-question-item {
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            border-left: 4px solid;
+        }
+        
+        .report-question-item.correct {
+            border-left-color: #4caf50;
+            background: var(--feedback-correct-bg);
+        }
+        
+        .report-question-item.incorrect {
+            border-left-color: #f44336;
+            background: var(--feedback-wrong-bg);
+        }
+        
+        .report-question-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .question-number {
+            font-weight: bold;
+            color: var(--btn-primary);
+        }
+        
+        .question-status {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .question-status i.fa-check-circle {
+            color: #4caf50;
+        }
+        
+        .question-status i.fa-times-circle {
+            color: #f44336;
+        }
+        
+        .report-question-text {
+            font-weight: 500;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+        
+        .report-answer-details {
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 8px;
+            color: var(--text-primary);
+        }
+        
+        .report-options {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--card-border);
+        }
+        
+        .report-options ul {
+            list-style: none;
+            padding-left: 0;
+            margin-top: 8px;
+        }
+        
+        .report-options li {
+            padding: 4px 0;
+            color: var(--text-primary);
+        }
+        
+        .correct-option {
+            color: #4caf50;
+            font-weight: bold;
+        }
+        
+        .report-actions {
+            margin-top: 25px;
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .report-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .print-report-btn {
+            background: #2196f3;
+            color: white;
+        }
+        
+        .print-report-btn:hover {
+            background: #1976d2;
+            transform: translateY(-2px);
+        }
+        
+        .download-report-btn {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .download-report-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        
+        .close-report-btn {
+            background: #f44336;
+            color: white;
+        }
+        
+        .close-report-btn:hover {
+            background: #d32f2f;
+            transform: translateY(-2px);
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Update the generateReport function to use the detailed report
+function generateReport() {
+    generateDetailedReport();
+}
+
+// Add this to DOMContentLoaded to add report styles
+document.addEventListener('DOMContentLoaded', () => {
+    addReportStyles();
+    
+    const reportBtn = document.getElementById('pdfReportBtn');
+    if (reportBtn) reportBtn.addEventListener('click', generateDetailedReport);
+    
+    const closeBtn = document.getElementById('closeArenaBtn');
+    if (closeBtn) closeBtn.addEventListener('click', closeArena);
+    
+    const openThemeBtn = document.getElementById('openThemeModal');
+    if (openThemeBtn) {
+        openThemeBtn.addEventListener('click', () => {
+            document.getElementById('themeModal').classList.add('show');
+        });
+    }
+    
+    const closeModal = document.querySelector('.close-modal');
+    if (closeModal) {
+        closeModal.addEventListener('click', () => {
+            document.getElementById('themeModal').classList.remove('show');
+        });
+    }
+    
+    const applyBtn = document.getElementById('applyThemeBtn');
+    if (applyBtn) {
+        applyBtn.addEventListener('click', () => {
+            const selected = document.querySelector('.theme-btn.active')?.dataset.theme || 'dark';
+            applyTheme(selected);
+        });
+    }
+    
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        });
+    });
+    
+    initGame();
+});
 
 function loadTheme() {
     const saved = localStorage.getItem('mathTheme') || 'dark';
     document.body.setAttribute('data-theme', saved);
+    
+    // Update theme buttons active state
     document.querySelectorAll('.theme-btn').forEach(btn => {
-        if (btn.dataset.theme === saved) btn.classList.add('active');
-        else btn.classList.remove('active');
+        if (btn.dataset.theme === saved) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
     });
+    
+    // Apply theme-specific styles if needed
+    applyThemeColors(saved);
 }
 
 function applyTheme(theme) {
     document.body.setAttribute('data-theme', theme);
     localStorage.setItem('mathTheme', theme);
-    document.getElementById('themeModal').classList.remove('show');
+    
+    // Update theme buttons active state
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+        if (btn.dataset.theme === theme) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    // Close modal after theme selection
+    const modal = document.getElementById('themeModal');
+    if (modal) {
+        modal.classList.remove('show');
+    }
+    
+    // Apply theme-specific colors
+    applyThemeColors(theme);
+    
+    // Show confirmation toast
+    showThemeToast(theme);
 }
 
-// Event Listeners
+function applyThemeColors(theme) {
+    // Optional: Add any additional theme-specific JavaScript adjustments
+    // This is mostly handled by CSS variables now
+    console.log(`Theme changed to: ${theme}`);
+}
+
+function showThemeToast(theme) {
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+    toast.innerHTML = `<i class="fas fa-${theme === 'dark' ? 'moon' : 'sun'}"></i> ${theme === 'dark' ? 'Dark' : 'Light'} theme applied!`;
+    toast.style.cssText = 'position:fixed; bottom:20px; right:20px; background:#2196f3; color:white; padding:12px 20px; border-radius:8px; z-index:9999; animation:fadeOut 3s forwards;';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+// Update your event listeners in DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
     const reportBtn = document.getElementById('pdfReportBtn');
     if (reportBtn) reportBtn.addEventListener('click', generateReport);
@@ -640,6 +1409,16 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.classList.add('active');
         });
     });
+    
+    // Click outside modal to close
+    const modal = document.getElementById('themeModal');
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('show');
+            }
+        });
+    }
     
     initGame();
 });
