@@ -60,7 +60,7 @@ const TOPICS = {
         order: 2,
         questions: [
             { text: "If f(x)=x², describe transformation to y=(x+2)² - 3", options: ["Left 2, down 3", "Right 2, down 3", "Left 2, up 3", "Right 2, up 3"], correct: "Left 2, down 3", hint: "h=-2 (left), k=-3 (down)" },
-            { text: "Find vertex of y=(x+1)² - 4", options: ["(-1,-4)", "(1,-4)", "(-1,4)", "(1,4)"], correct: "(-1,-4)", hint: "Vertex at (-h, k) but formula is (x-h)²+k" },
+            { text: "Find vertex of y=(x+1)² - 4", options: ["(-1,-4)", "(1,-4)", "(-1,4)", "(1,4)"], correct: "(-1,-4)", hint: "Vertex at (h,k) where h=-1, k=-4" },
             { text: "If h(x)=3x+2, find h⁻¹(x)", options: ["(x-2)/3", "(x+2)/3", "3x-2", "x/3-2"], correct: "(x-2)/3", hint: "Swap: x=3y+2 → 3y=x-2 → y=(x-2)/3" },
             { text: "f(x)=x², what is f(x-3)?", options: ["(x-3)²", "x²-3", "x²-9", "x²-6x+9"], correct: "(x-3)²", hint: "Replace x with x-3" },
             { text: "If f(x)=4x-3, find f(5)", options: ["17", "20", "12", "23"], correct: "17", hint: "4(5)-3=20-3=17" },
@@ -161,10 +161,37 @@ const TOPICS = {
             { text: "Find equation of line through (0,0) with gradient 4", options: ["y=4x", "y=4x+1", "y=4", "x=4y"], correct: "y=4x", hint: "y=mx through origin" },
             { text: "Parallel vector to (2,-3)", options: ["(4,-6)", "(-2,3)", "(-4,6)", "All of these"], correct: "All of these", hint: "Scalar multiples are parallel" }
         ]
+    },
+    statistics: {
+        name: "Statistics & Probability",
+        icon: "fas fa-chart-bar",
+        order: 6,
+        questions: [
+            { text: "For data set: 2, 3, 4, 4, 5, 6, 7, 7, 8, 9, 11, 14. Find the mean", options: ["6.67", "6.5", "7", "6.25"], correct: "6.67", hint: "Sum=80, n=12, 80/12=6.67" },
+            { text: "For the same data, find the median", options: ["6.5", "6", "7", "6.67"], correct: "6.5", hint: "Middle values: 6 and 7, average = 6.5" },
+            { text: "Find Q1 for: 2,3,4,4,5,6,7,7,8,9,11,14", options: ["4", "3.5", "4.5", "5"], correct: "4", hint: "Lower half: 2,3,4,4,5,6 → Q1=4" },
+            { text: "Find Q3 for the same data", options: ["8.5", "8", "9", "7.5"], correct: "8.5", hint: "Upper half: 7,7,8,9,11,14 → Q3=(8+9)/2=8.5" },
+            { text: "Calculate IQR for the data", options: ["4.5", "5", "4", "6"], correct: "4.5", hint: "IQR = Q3 - Q1 = 8.5 - 4 = 4.5" },
+            { text: "Using 1.5×IQR rule, is 14 an outlier?", options: ["No, bound is 15.25", "Yes", "No, bound is 16", "Yes, bound is 14.5"], correct: "No, bound is 15.25", hint: "Upper bound = 8.5 + 1.5×4.5 = 15.25" },
+            { text: "For data: 3,5,5,7, find the mean", options: ["5", "5.5", "4.5", "6"], correct: "5", hint: "Sum=20, n=4, 20/4=5" },
+            { text: "Calculate variance for 3,5,5,7", options: ["2", "2.5", "1.5", "3"], correct: "2", hint: "Σ(x-5)²=4+0+0+4=8, 8/4=2" },
+            { text: "Standard deviation of 3,5,5,7 to 3 s.f.", options: ["1.41", "1.414", "1.5", "1.4"], correct: "1.41", hint: "√2 = 1.414 → 1.41" },
+            { text: "In histogram with unequal widths, what represents frequency?", options: ["Area of bar", "Height of bar", "Width of bar", "Class midpoint"], correct: "Area of bar", hint: "Frequency density × class width = frequency" },
+            { text: "Frequency density formula", options: ["Frequency ÷ Class Width", "Class Width ÷ Frequency", "Frequency × Class Width", "Frequency + Class Width"], correct: "Frequency ÷ Class Width", hint: "Density = frequency / class width" },
+            { text: "P(A ∪ B) = ?", options: ["P(A)+P(B)-P(A∩B)", "P(A)+P(B)", "P(A)×P(B)", "P(A)+P(B)+P(A∩B)"], correct: "P(A)+P(B)-P(A∩B)", hint: "Addition rule" },
+            { text: "If P(A)=0.3, P(B)=0.4, P(A∩B)=0.1, find P(A∪B)", options: ["0.6", "0.7", "0.5", "0.8"], correct: "0.6", hint: "0.3+0.4-0.1=0.6" },
+            { text: "Mutually exclusive events satisfy:", options: ["P(A∩B)=0", "P(A∪B)=0", "P(A)=P(B)", "P(A∩B)=P(A)P(B)"], correct: "P(A∩B)=0", hint: "Cannot occur together" },
+            { text: "Independent events satisfy:", options: ["P(A∩B)=P(A)P(B)", "P(A∩B)=0", "P(A∪B)=P(A)+P(B)", "P(A)=P(B)"], correct: "P(A∩B)=P(A)P(B)", hint: "Multiplication rule for independence" },
+            { text: "From a bag with 5 red, 3 blue, probability of picking red first?", options: ["5/8", "3/8", "5/7", "3/7"], correct: "5/8", hint: "5 red out of 8 total" },
+            { text: "Without replacement: P(Red then Red) from 5R,3B?", options: ["20/56", "25/64", "15/56", "10/56"], correct: "20/56", hint: "(5/8)×(4/7)=20/56" },
+            { text: "Complement rule: P(A') = ?", options: ["1-P(A)", "P(A)-1", "1+P(A)", "P(A)"], correct: "1-P(A)", hint: "Probability of event not occurring" },
+            { text: "Box plot shows which five values?", options: ["Min, Q1, Median, Q3, Max", "Mean, Median, Mode, Range, IQR", "Min, Mean, Median, Mode, Max", "Q1, Q2, Q3, Q4, Q5"], correct: "Min, Q1, Median, Q3, Max", hint: "Five-number summary" },
+            { text: "Which is more robust to outliers?", options: ["Median and IQR", "Mean and Std Dev", "Mean and Range", "Mode and Range"], correct: "Median and IQR", hint: "Median not affected by extreme values" }
+        ]
     }
 };
 
-const TOPIC_ORDER = ['algebra', 'quadratics', 'functions', 'calculus', 'trigonometry', 'vectors'];
+const TOPIC_ORDER = ['algebra', 'quadratics', 'functions', 'calculus', 'trigonometry', 'vectors', 'statistics'];
 let topicsState = {};
 let globalStreak = 0;
 let totalPossible = 0;
@@ -172,22 +199,137 @@ let currentUnlockedIndex = 0;
 let currentTopic = null;
 let confettiAnimationId = null;
 let autoAdvanceTimer = null;
+let userId = null;
 
+// User Management Functions
+function initializeUser() {
+    // Check for existing user
+    let savedUser = localStorage.getItem('mathMasterUser');
+    if (!savedUser) {
+        // Prompt for username on first visit
+        userId = prompt('Welcome to Math Master! Enter your name to save your progress:', 'Student');
+        if (!userId) userId = 'Student';
+        localStorage.setItem('mathMasterUser', userId);
+    } else {
+        userId = savedUser;
+    }
+    return userId;
+}
+
+function saveProgress() {
+    if (!userId) return;
+    const saveData = {
+        userId: userId,
+        topicsState: topicsState,
+        globalStreak: globalStreak,
+        lastSaved: new Date().toISOString()
+    };
+    localStorage.setItem(`mathMaster_${userId}`, JSON.stringify(saveData));
+    console.log(`Progress saved for ${userId}`);
+}
+
+function loadProgress() {
+    if (!userId) return false;
+    const savedData = localStorage.getItem(`mathMaster_${userId}`);
+    if (savedData) {
+        try {
+            const data = JSON.parse(savedData);
+            topicsState = data.topicsState;
+            globalStreak = data.globalStreak;
+            console.log(`Progress loaded for ${userId} - Last saved: ${data.lastSaved}`);
+            return true;
+        } catch (e) {
+            console.error('Error loading progress:', e);
+            return false;
+        }
+    }
+    return false;
+}
+
+function resetProgress() {
+    if (confirm('Are you sure you want to reset ALL your progress? This cannot be undone.')) {
+        // Reset all topics state
+        for (let tid of TOPIC_ORDER) {
+            const qlist = TOPICS[tid].questions;
+            topicsState[tid] = {
+                currentIdx: 0,
+                answers: qlist.map(() => ({ answered: false, correct: false }))
+            };
+        }
+        globalStreak = 0;
+        saveProgress();
+        updateStats();
+        renderDashboard();
+        if (currentTopic) closeArena();
+        alert('Progress has been reset!');
+    }
+}
+
+function showUserInfo() {
+    const correctCount = Object.values(topicsState).reduce((sum, state) => 
+        sum + state.answers.filter(a => a.correct).length, 0);
+    alert(`👤 User: ${userId}\n📊 Total Score: ${correctCount}/${totalPossible}\n🔥 Current Streak: ${globalStreak}\n🏆 Topics Mastered: ${document.getElementById('topicsComplete').innerText}/7\n\nProgress is automatically saved!`);
+}
+
+// Initialize game
 function initGame() {
+    initializeUser();
+    
     totalPossible = 0;
     for (let tid of TOPIC_ORDER) {
         const qlist = TOPICS[tid].questions;
         totalPossible += qlist.length;
-        topicsState[tid] = {
-            currentIdx: 0,
-            answers: qlist.map(() => ({ answered: false, correct: false }))
-        };
+        if (!topicsState[tid]) {
+            topicsState[tid] = {
+                currentIdx: 0,
+                answers: qlist.map(() => ({ answered: false, correct: false }))
+            };
+        }
     }
+    
+    // Try to load saved progress
+    const loaded = loadProgress();
+    
     document.getElementById('totalPossible').innerText = totalPossible;
     document.getElementById('totalTopics').innerText = TOPIC_ORDER.length;
+    
+    // Add user info button to header
+    addUserControls();
+    
     updateStats();
     renderDashboard();
     loadTheme();
+    
+    if (loaded) {
+        // Show confirmation message
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        toast.innerHTML = `<i class="fas fa-save"></i> Welcome back, ${userId}! Your progress has been loaded.`;
+        toast.style.cssText = 'position:fixed; bottom:20px; right:20px; background:#2196f3; color:white; padding:12px 20px; border-radius:8px; z-index:9999; animation:fadeOut 3s forwards;';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+}
+
+function addUserControls() {
+    const statsSection = document.querySelector('.stats-section');
+    if (statsSection && !document.getElementById('userInfoBtn')) {
+        const userBtn = document.createElement('button');
+        userBtn.id = 'userInfoBtn';
+        userBtn.className = 'pdf-btn';
+        userBtn.innerHTML = `<i class="fas fa-user"></i> ${userId.substring(0, 10)}`;
+        userBtn.onclick = showUserInfo;
+        
+        const resetBtn = document.createElement('button');
+        resetBtn.id = 'resetProgressBtn';
+        resetBtn.className = 'pdf-btn';
+        resetBtn.innerHTML = `<i class="fas fa-trash-alt"></i> Reset`;
+        resetBtn.style.background = '#f44336';
+        resetBtn.onclick = resetProgress;
+        
+        statsSection.appendChild(userBtn);
+        statsSection.appendChild(resetBtn);
+    }
 }
 
 function updateStats() {
@@ -195,14 +337,19 @@ function updateStats() {
     let defeatedCount = 0;
     for (let tid of TOPIC_ORDER) {
         const state = topicsState[tid];
-        const correct = state.answers.filter(a => a.correct).length;
-        totalCorrect += correct;
-        if (correct === TOPICS[tid].questions.length) defeatedCount++;
+        if (state) {
+            const correct = state.answers.filter(a => a.correct).length;
+            totalCorrect += correct;
+            if (correct === TOPICS[tid].questions.length) defeatedCount++;
+        }
     }
     document.getElementById('totalScore').innerText = totalCorrect;
     document.getElementById('topicsComplete').innerText = defeatedCount;
     document.getElementById('streakCount').innerText = globalStreak;
     currentUnlockedIndex = defeatedCount;
+    
+    // Save progress after every update
+    saveProgress();
 }
 
 function renderDashboard() {
@@ -214,6 +361,8 @@ function renderDashboard() {
         const tid = TOPIC_ORDER[i];
         const topic = TOPICS[tid];
         const state = topicsState[tid];
+        if (!state) continue;
+        
         const correctCount = state.answers.filter(a => a.correct).length;
         const totalQs = topic.questions.length;
         const isDefeated = correctCount === totalQs;
@@ -269,6 +418,7 @@ function closeArena() {
     currentTopic = null;
     renderDashboard();
     updateStats();
+    saveProgress();
 }
 
 function renderQuiz() {
@@ -289,7 +439,7 @@ function renderQuiz() {
                 <i class="fas fa-trophy"></i>
                 <h2>TOPIC MASTERED!</h2>
                 <p>Score: ${correctCount}/${totalQs}</p>
-                <p><i class="fas fa-star"></i> Excellent work! <i class="fas fa-star"></i></p>
+                <p><i class="fas fa-star"></i> Excellent work, ${userId}! <i class="fas fa-star"></i></p>
                 <button class="next-btn" onclick="closeArena()">Return to Dashboard</button>
             </div>
         `;
@@ -375,6 +525,7 @@ function handleAnswer(tid, selected, isCorrect) {
     renderQuiz();
     updateStats();
     renderDashboard();
+    saveProgress();
     
     // Auto-advance after 1.5 seconds
     autoAdvanceTimer = setTimeout(() => {
@@ -394,6 +545,7 @@ function nextQuestion(tid) {
         renderQuiz();
         updateStats();
         renderDashboard();
+        saveProgress();
     }
 }
 
@@ -453,15 +605,17 @@ function generateReport() {
         <div style="text-align:center; margin-bottom:20px;">
             <i class="fas fa-graduation-cap" style="font-size: 40px; color:#2196f3;"></i>
             <h2 style="color:#2196f3;">NCUK Math Master Report</h2>
+            <p><strong>Student:</strong> ${userId}</p>
         </div>
         <p><strong>Final Score:</strong> ${totalCor} / ${totalPossible}</p>
-        <p><strong>Topics Mastered:</strong> ${completed} / 6</p>
+        <p><strong>Topics Mastered:</strong> ${completed} / 7</p>
         <p><strong>Current Streak:</strong> ${globalStreak}</p>
         <hr style="margin:15px 0; border-color:#2196f3;">
         <p><i class="fas fa-chart-line"></i> Keep practicing to achieve mastery!</p>
-        <p><i class="fas fa-calendar"></i> Date: ${new Date().toLocaleDateString()}</p>
+        <p><i class="fas fa-calendar"></i> Report Date: ${new Date().toLocaleDateString()}</p>
+        <p><i class="fas fa-user"></i> Progress is automatically saved for ${userId}</p>
     `;
-    html2pdf().set({ margin: 0.5, filename: 'NCUK_Math_Report.pdf', image: { type: 'jpeg', quality: 0.98 } }).from(reportDiv).save();
+    html2pdf().set({ margin: 0.5, filename: `Math_Master_Report_${userId}.pdf`, image: { type: 'jpeg', quality: 0.98 } }).from(reportDiv).save();
 }
 
 function loadTheme() {
