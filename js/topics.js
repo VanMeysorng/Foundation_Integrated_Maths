@@ -78,7 +78,7 @@ const TOPICS = {
     },
     functions: {
         name: "Functions & Transformations",
-        icon: "fas fa-chart-simple",
+        icon: "fas fa-f",
         order: 2,
         questions: [
             { text: "If f(x)=x², describe transformation to y=(x-4)² + 3", options: ["Right 4 units, up 3 units", "Left 4 units, up 3 units", "Right 4 units, down 3 units", "Left 4 units, down 3 units"], correct: "Right 4 units, up 3 units", hint: "h=4 (shift right), k=3 (shift up)" },
@@ -132,7 +132,7 @@ const TOPICS = {
     },
     trigonometry: {
         name: "Trigonometry & Radians",
-        icon: "fas fa-sine",
+        icon: "fas fa-angle-up",
         order: 4,
         questions: [
             { text: "Solve sin x = 1/2 for 0° ≤ x ≤ 360°", options: ["30° and 150°", "60° and 120°", "30° and 210°", "60° and 300°"], correct: "30° and 150°", hint: "sin 30° = 1/2, sin 150° = sin(180°-30°) = 1/2" },
