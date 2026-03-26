@@ -1,4 +1,4 @@
-// main.js - Main application logic (Updated with Chemistry-style Report)
+// main.js - Main application logic (Updated with Skip Button and Skipped Questions Tracking)
 
 // Global variables
 let topicsState = {};
@@ -61,7 +61,7 @@ function resetProgress() {
             const qlist = TOPICS[tid].questions;
             topicsState[tid] = {
                 currentIdx: 0,
-                answers: qlist.map(() => ({ answered: false, correct: false }))
+                answers: qlist.map(() => ({ answered: false, correct: false, userAnswer: null, skipped: false }))
             };
         }
         globalStreak = 0;
@@ -76,8 +76,9 @@ function resetProgress() {
 function showUserInfo() {
     const correctCount = Object.values(topicsState).reduce((sum, state) => 
         sum + state.answers.filter(a => a.correct).length, 0);
-    const skippedCount = 0; // Math Master doesn't track skipped
-    alert(`👤 Student: ${userId}\n📊 Score: ${correctCount}/${totalPossible}\n📝 Skipped: ${skippedCount}\n🔥 Streak: ${globalStreak}\n\nProgress auto-saved!`);
+    const skippedCount = Object.values(topicsState).reduce((sum, state) => 
+        sum + state.answers.filter(a => a.skipped).length, 0);
+    alert(`👤 Student: ${userId}\n📊 Score: ${correctCount}/${totalPossible}\n⏭️ Skipped: ${skippedCount}\n🔥 Streak: ${globalStreak}\n\nProgress auto-saved!`);
 }
 
 function showToast(message) {
@@ -105,7 +106,7 @@ function initGame() {
         if (!topicsState[tid]) {
             topicsState[tid] = {
                 currentIdx: 0,
-                answers: qlist.map(() => ({ answered: false, correct: false }))
+                answers: qlist.map(() => ({ answered: false, correct: false, userAnswer: null, skipped: false }))
             };
         }
     }
@@ -177,6 +178,7 @@ function renderDashboard() {
         if (!state) continue;
         
         const correctCount = state.answers.filter(a => a.correct).length;
+        const skippedCount = state.answers.filter(a => a.skipped).length;
         const totalQs = topic.questions.length;
         const isMastered = correctCount === totalQs;
         const progressPercent = (correctCount / totalQs) * 100;
@@ -193,6 +195,7 @@ function renderDashboard() {
             <div class="card-body">
                 <div class="card-stats">
                     <span><i class="fas fa-check-circle"></i> ${correctCount}/${totalQs}</span>
+                    ${skippedCount > 0 ? `<span><i class="fas fa-forward"></i> ${skippedCount} skipped</span>` : ''}
                     <span><i class="fas fa-chart-line"></i> ${Math.round(progressPercent)}%</span>
                 </div>
                 <div class="progress-bar">
@@ -239,9 +242,10 @@ function renderQuiz() {
     const state = topicsState[currentTopic];
     const totalQs = topic.questions.length;
     const correctCount = state.answers.filter(a => a.correct).length;
+    const skippedCount = state.answers.filter(a => a.skipped).length;
     const allQuestionsAnswered = state.answers.every(a => a.answered === true);
     
-    document.getElementById('progressInfo').innerHTML = `<i class="fas fa-chart-line"></i> ${correctCount}/${totalQs} Correct`;
+    document.getElementById('progressInfo').innerHTML = `<i class="fas fa-chart-line"></i> ${correctCount}/${totalQs} Correct | <i class="fas fa-forward"></i> ${skippedCount} Skipped`;
     
     if (allQuestionsAnswered) {
         const score = correctCount;
@@ -273,6 +277,7 @@ function renderQuiz() {
                         <span class="score-total">/${totalQs}</span>
                     </div>
                     <div class="score-percentage">${percentage}%</div>
+                    ${skippedCount > 0 ? `<div class="skipped-info"><i class="fas fa-forward"></i> ${skippedCount} questions skipped</div>` : ''}
                 </div>
                 <p><i class="fas ${icon}"></i> ${message}</p>
                 <div class="completion-buttons">
@@ -291,15 +296,19 @@ function renderQuiz() {
     const current = topic.questions[state.currentIdx];
     const isAnswered = state.answers[state.currentIdx].answered;
     const isCorrect = state.answers[state.currentIdx].correct;
+    const isSkipped = state.answers[state.currentIdx].skipped;
     const progressPercent = (state.answers.filter(a => a.answered).length / totalQs) * 100;
     
-    let feedbackHtml = `<i class="fas fa-brain"></i> Select an answer and click Submit`;
+    let feedbackHtml = `<i class="fas fa-brain"></i> Select an answer or click "Skip" to move on`;
     let feedbackClass = '';
     
     if (isAnswered) {
         if (isCorrect) {
             feedbackHtml = `<i class="fas fa-check-circle"></i> Correct! ${current.hint || 'Well done!'}`;
             feedbackClass = 'feedback-correct';
+        } else if (isSkipped) {
+            feedbackHtml = `<i class="fas fa-forward"></i> You skipped this question.<br><strong>Correct answer:</strong> ${current.correct}`;
+            feedbackClass = 'feedback-skipped';
         } else {
             feedbackHtml = `<i class="fas fa-lightbulb"></i> ${current.hint || 'Review the concept.'}<br><strong>Correct answer:</strong> ${current.correct}`;
             feedbackClass = 'feedback-wrong';
@@ -327,6 +336,14 @@ function renderQuiz() {
         `;
     }).join('');
     
+    // Create button group for submit and skip buttons
+    const actionButtonsHtml = !isAnswered ? `
+        <div class="action-buttons-group">
+            <button class="submit-btn" id="submitAnswerBtn"><i class="fas fa-check"></i> Submit Answer</button>
+            <button class="skip-btn" id="skipAnswerBtn"><i class="fas fa-forward"></i> Skip / Don't Know</button>
+        </div>
+    ` : `<button class="next-btn" id="nextQuestionBtn"><i class="fas fa-forward"></i> Next Question</button>`;
+    
     container.innerHTML = `
         <div class="question-card">
             <div class="progress-bar" style="margin-bottom: 1rem;">
@@ -339,14 +356,14 @@ function renderQuiz() {
                 ${optionsHtml}
             </div>
             <div class="feedback ${feedbackClass}">${feedbackHtml}</div>
-            ${!isAnswered ? `<button class="submit-btn" id="submitAnswerBtn"><i class="fas fa-check"></i> Submit Answer</button>` : ''}
-            ${isAnswered ? `<button class="next-btn" id="nextQuestionBtn"><i class="fas fa-forward"></i> Next Question</button>` : ''}
+            ${actionButtonsHtml}
         </div>
     `;
     
     if (!isAnswered) {
         const btns = document.querySelectorAll('.option-btn');
         const submitBtn = document.getElementById('submitAnswerBtn');
+        const skipBtn = document.getElementById('skipAnswerBtn');
         
         if (submitBtn) {
             submitBtn.disabled = true;
@@ -388,7 +405,7 @@ function renderQuiz() {
                 if (!selectedAnswerValue) {
                     const feedbackDiv = document.querySelector('.feedback');
                     const originalHtml = feedbackDiv.innerHTML;
-                    feedbackDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Please select an answer first!';
+                    feedbackDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Please select an answer or click "Skip"!';
                     feedbackDiv.style.color = '#ff9800';
                     setTimeout(() => {
                         feedbackDiv.innerHTML = originalHtml;
@@ -405,6 +422,12 @@ function renderQuiz() {
                 submitBtn.style.cursor = 'not-allowed';
                 submitBtn.classList.remove('active');
                 
+                if (skipBtn) {
+                    skipBtn.disabled = true;
+                    skipBtn.style.opacity = '0.7';
+                    skipBtn.style.cursor = 'not-allowed';
+                }
+                
                 const selectedBtn = Array.from(document.querySelectorAll('.option-btn')).find(
                     btn => btn.getAttribute('data-opt') === selectedAnswerValue
                 );
@@ -415,6 +438,29 @@ function renderQuiz() {
             
             submitBtn.removeEventListener('click', handleSubmit);
             submitBtn.addEventListener('click', handleSubmit);
+        }
+        
+        if (skipBtn) {
+            const handleSkip = () => {
+                if (isProcessing) return;
+                isProcessing = true;
+                
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.style.opacity = '0.7';
+                    submitBtn.style.cursor = 'not-allowed';
+                    submitBtn.classList.remove('active');
+                }
+                
+                skipBtn.disabled = true;
+                skipBtn.style.opacity = '0.7';
+                skipBtn.style.cursor = 'not-allowed';
+                
+                skipQuestion(currentTopic);
+            };
+            
+            skipBtn.removeEventListener('click', handleSkip);
+            skipBtn.addEventListener('click', handleSkip);
         }
     }
     
@@ -431,11 +477,37 @@ function renderQuiz() {
     }
 }
 
+function skipQuestion(tid) {
+    const state = topicsState[tid];
+    
+    // Mark as answered, incorrect, and skipped
+    state.answers[state.currentIdx].answered = true;
+    state.answers[state.currentIdx].correct = false;
+    state.answers[state.currentIdx].skipped = true;
+    state.answers[state.currentIdx].userAnswer = "(Skipped)";
+    
+    // Reset streak on skip
+    globalStreak = 0;
+    
+    // Reset selected answer
+    selectedAnswerValue = null;
+    isProcessing = false;
+    
+    // Re-render to show feedback and next button
+    renderQuiz();
+    updateStats();
+    renderDashboard();
+    saveProgress();
+    
+    // Show a brief toast notification
+    showToast('Question skipped. The correct answer will be shown.');
+}
+
 function retryTopic(tid) {
     const totalQs = TOPICS[tid].questions.length;
     topicsState[tid] = {
         currentIdx: 0,
-        answers: Array(totalQs).fill().map(() => ({ answered: false, correct: false }))
+        answers: Array(totalQs).fill().map(() => ({ answered: false, correct: false, userAnswer: null, skipped: false }))
     };
     
     selectedAnswerValue = null;
@@ -452,6 +524,8 @@ function submitAnswer(tid, selected, isCorrect) {
     
     state.answers[state.currentIdx].answered = true;
     state.answers[state.currentIdx].correct = isCorrect;
+    state.answers[state.currentIdx].skipped = false;
+    state.answers[state.currentIdx].userAnswer = selected;
     
     if (isCorrect) {
         globalStreak++;
@@ -530,7 +604,7 @@ function triggerConfetti() {
     draw();
 }
 
-// ==================== DETAILED REPORT SYSTEM (Chemistry Style) ====================
+// ==================== DETAILED REPORT SYSTEM ====================
 
 function generateDetailedReport() {
     if (!userId) return;
@@ -539,6 +613,7 @@ function generateDetailedReport() {
     const reportData = [];
     let totalCorrect = 0;
     let totalQuestions = 0;
+    let totalSkipped = 0;
     
     for (let tid of TOPIC_ORDER) {
         const topic = TOPICS[tid];
@@ -552,24 +627,64 @@ function generateDetailedReport() {
             topicIcon: topic.icon,
             questions: [],
             correctCount: 0,
+            skippedCount: 0,
+            incorrectCount: 0,
             totalCount: topic.questions.length
         };
         
         for (let i = 0; i < topic.questions.length; i++) {
             const question = topic.questions[i];
             const answer = state.answers[i];
-            const isCorrect = answer.answered && answer.correct;
+            
+            // Check if question was skipped
+            const isSkipped = answer.answered && answer.skipped === true;
+            const isCorrect = answer.answered && answer.correct === true && !isSkipped;
+            const isIncorrect = answer.answered && !answer.correct && !isSkipped;
             
             if (isCorrect) totalCorrect++;
+            if (isSkipped) totalSkipped++;
             totalQuestions++;
+            
             if (isCorrect) topicData.correctCount++;
+            if (isSkipped) topicData.skippedCount++;
+            if (isIncorrect) topicData.incorrectCount++;
+            
+            // Format user answer display
+            let userAnswerDisplay = "Not answered";
+            let statusText = "Not Answered";
+            let statusIcon = "fa-question-circle";
+            let statusClass = "not-answered";
+            
+            if (answer.answered) {
+                if (isCorrect) {
+                    userAnswerDisplay = answer.userAnswer || question.correct;
+                    statusText = "Correct";
+                    statusIcon = "fa-check-circle";
+                    statusClass = "correct";
+                } else if (isSkipped) {
+                    userAnswerDisplay = "⏭️ Skipped";
+                    statusText = "Skipped";
+                    statusIcon = "fa-forward";
+                    statusClass = "skipped";
+                } else {
+                    userAnswerDisplay = answer.userAnswer || "Incorrect";
+                    statusText = "Incorrect";
+                    statusIcon = "fa-times-circle";
+                    statusClass = "incorrect";
+                }
+            }
             
             topicData.questions.push({
                 number: i + 1,
                 text: question.text,
                 correctAnswer: question.correct,
-                userAnswer: answer.answered ? (answer.correct ? question.correct : "Incorrect") : "Not answered",
+                userAnswer: userAnswerDisplay,
                 isCorrect: isCorrect,
+                isSkipped: isSkipped,
+                isIncorrect: isIncorrect,
+                status: statusText,
+                statusIcon: statusIcon,
+                statusClass: statusClass,
                 hint: question.hint || "Review the concept and try again.",
                 options: question.options || []
             });
@@ -609,6 +724,13 @@ function generateDetailedReport() {
                     </div>
                 </div>
                 <div class="report-stat-card">
+                    <i class="fas fa-forward"></i>
+                    <div class="report-stat-info">
+                        <span class="report-stat-label">Questions Skipped</span>
+                        <span class="report-stat-value" style="color: #ff9800;">${totalSkipped}</span>
+                    </div>
+                </div>
+                <div class="report-stat-card">
                     <i class="fas fa-trophy"></i>
                     <div class="report-stat-info">
                         <span class="report-stat-label">Topics Mastered</span>
@@ -631,20 +753,25 @@ function generateDetailedReport() {
                             <i class="${topic.topicIcon}"></i>
                             <h3>${escapeHtml(topic.topicName)}</h3>
                             <div class="report-topic-score">
-                                <span class="${topic.correctCount === topic.totalCount ? 'mastered' : topic.correctCount > 0 ? 'partial' : 'none'}">
-                                    ${topic.correctCount}/${topic.totalCount} correct
+                                <span class="${topic.correctCount === topic.totalCount ? 'mastered' : 'partial'}">
+                                    ✅ ${topic.correctCount}/${topic.totalCount} correct
                                 </span>
+                                ${topic.skippedCount > 0 ? `
+                                    <span class="skipped-badge">
+                                        ⏭️ ${topic.skippedCount} skipped
+                                    </span>
+                                ` : ''}
                                 <i class="fas fa-chevron-down toggle-icon"></i>
                             </div>
                         </div>
                         <div class="report-topic-details" id="report-topic-${topic.topicId}" style="display: none;">
                             ${topic.questions.map(q => `
-                                <div class="report-question-item ${q.isCorrect ? 'correct' : 'incorrect'}">
+                                <div class="report-question-item ${q.statusClass}">
                                     <div class="report-question-header">
                                         <span class="question-number">Q${q.number}</span>
-                                        <span class="question-status">
-                                            <i class="fas ${q.isCorrect ? 'fa-check-circle' : 'fa-times-circle'}"></i>
-                                            ${q.isCorrect ? 'Correct' : 'Incorrect'}
+                                        <span class="question-status ${q.statusClass}">
+                                            <i class="fas ${q.statusIcon}"></i>
+                                            ${q.status}
                                         </span>
                                     </div>
                                     <div class="report-question-text">${escapeHtml(q.text)}</div>
@@ -805,6 +932,7 @@ function printMathReport() {
                     display: flex;
                     align-items: center;
                     gap: 15px;
+                    flex-wrap: wrap;
                 }
                 .report-topic-header i {
                     font-size: 24px;
@@ -813,6 +941,12 @@ function printMathReport() {
                 .report-topic-header h3 {
                     flex: 1;
                     margin: 0;
+                }
+                .report-topic-score {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    flex-wrap: wrap;
                 }
                 .report-topic-score span {
                     padding: 4px 12px;
@@ -828,9 +962,13 @@ function printMathReport() {
                     background: #ff9800;
                     color: white;
                 }
-                .report-topic-score .none {
-                    background: #f44336;
+                .skipped-badge {
+                    background: #ff9800;
                     color: white;
+                    padding: 4px 12px;
+                    border-radius: 20px;
+                    font-size: 12px;
+                    font-weight: bold;
                 }
                 .toggle-icon {
                     display: none;
@@ -850,6 +988,12 @@ function printMathReport() {
                 .report-question-item.incorrect {
                     background: #ffebee;
                 }
+                .report-question-item.skipped {
+                    background: #fff3e0;
+                }
+                .report-question-item.not-answered {
+                    background: #f5f5f5;
+                }
                 .report-question-header {
                     display: flex;
                     justify-content: space-between;
@@ -863,12 +1007,16 @@ function printMathReport() {
                     display: flex;
                     align-items: center;
                     gap: 5px;
+                    font-weight: 500;
                 }
-                .question-status i.fa-check-circle {
+                .question-status.correct i {
                     color: #4caf50;
                 }
-                .question-status i.fa-times-circle {
+                .question-status.incorrect i {
                     color: #f44336;
+                }
+                .question-status.skipped i {
+                    color: #ff9800;
                 }
                 .report-question-text {
                     font-weight: 500;
@@ -897,6 +1045,18 @@ function printMathReport() {
                     cursor: pointer;
                     font-size: 14px;
                     font-weight: 500;
+                }
+                .print-report-btn {
+                    background: #2196f3;
+                    color: white;
+                }
+                .download-report-btn {
+                    background: #4caf50;
+                    color: white;
+                }
+                .close-report-btn {
+                    background: #f44336;
+                    color: white;
                 }
                 @media print {
                     body {
@@ -929,6 +1089,8 @@ function downloadMathReport() {
     
     const totalCorrect = Object.values(topicsState).reduce((sum, state) => 
         sum + state.answers.filter(a => a.correct).length, 0);
+    const totalSkipped = Object.values(topicsState).reduce((sum, state) => 
+        sum + state.answers.filter(a => a.skipped).length, 0);
     
     const reportData = {
         student: userId,
@@ -936,6 +1098,7 @@ function downloadMathReport() {
         globalStreak: globalStreak,
         totalScore: {
             correct: totalCorrect,
+            skipped: totalSkipped,
             total: totalPossible,
             percentage: Math.round((totalCorrect / totalPossible) * 100)
         },
@@ -943,6 +1106,8 @@ function downloadMathReport() {
             name: topic.topicName,
             id: topic.topicId,
             correctCount: topic.correctCount,
+            skippedCount: topic.skippedCount,
+            incorrectCount: topic.incorrectCount,
             totalCount: topic.totalCount,
             questions: topic.questions.map(q => ({
                 number: q.number,
@@ -950,6 +1115,7 @@ function downloadMathReport() {
                 correctAnswer: q.correctAnswer,
                 userAnswer: q.userAnswer,
                 isCorrect: q.isCorrect,
+                isSkipped: q.isSkipped,
                 hint: q.hint
             }))
         }))
@@ -966,7 +1132,7 @@ function downloadMathReport() {
     linkElement.click();
 }
 
-// ==================== REPORT STYLES (Chemistry Style) ====================
+// ==================== REPORT STYLES ====================
 
 function addReportStyles() {
     const style = document.createElement('style');
@@ -1089,6 +1255,7 @@ function addReportStyles() {
             gap: 12px;
             cursor: pointer;
             transition: all 0.2s;
+            flex-wrap: wrap;
         }
         
         .report-topic-header:hover {
@@ -1111,6 +1278,7 @@ function addReportStyles() {
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-wrap: wrap;
         }
         
         .report-topic-score span {
@@ -1130,9 +1298,13 @@ function addReportStyles() {
             color: white;
         }
         
-        .report-topic-score .none {
-            background: #f44336;
+        .skipped-badge {
+            background: #ff9800;
             color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
         }
         
         .toggle-icon {
@@ -1161,6 +1333,16 @@ function addReportStyles() {
             background: var(--feedback-wrong-bg, rgba(244, 67, 54, 0.1));
         }
         
+        .report-question-item.skipped {
+            border-left-color: #ff9800;
+            background: rgba(255, 152, 0, 0.1);
+        }
+        
+        .report-question-item.not-answered {
+            border-left-color: #757575;
+            background: rgba(117, 117, 117, 0.1);
+        }
+        
         .report-question-header {
             display: flex;
             justify-content: space-between;
@@ -1178,12 +1360,16 @@ function addReportStyles() {
             gap: 5px;
         }
         
-        .question-status i.fa-check-circle {
+        .question-status.correct i {
             color: #4caf50;
         }
         
-        .question-status i.fa-times-circle {
+        .question-status.incorrect i {
             color: #f44336;
+        }
+        
+        .question-status.skipped i {
+            color: #ff9800;
         }
         
         .report-question-text {
@@ -1270,6 +1456,64 @@ function addReportStyles() {
             box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
         }
         
+        /* Action Buttons Group */
+        .action-buttons-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 20px;
+        }
+        
+        .action-buttons-group .submit-btn,
+        .action-buttons-group .skip-btn {
+            flex: 1;
+            margin-top: 0;
+        }
+        
+        /* Skip Button */
+        .skip-btn {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .skip-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
+            background: linear-gradient(135deg, #f57c00, #ef6c00);
+        }
+        
+        .skip-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .feedback-skipped {
+            background: rgba(255, 152, 0, 0.1);
+            color: #ff9800;
+            border-left: 4px solid #ff9800;
+        }
+        
+        .skipped-info {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: rgba(255, 152, 0, 0.1);
+            border-radius: 8px;
+            color: #ff9800;
+            font-size: 12px;
+        }
+        
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
@@ -1278,6 +1522,19 @@ function addReportStyles() {
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .action-buttons-group {
+                flex-direction: column;
+                gap: 0.8rem;
+            }
+            
+            .action-buttons-group .submit-btn,
+            .action-buttons-group .skip-btn {
+                width: 100%;
+            }
         }
     `;
     document.head.appendChild(style);
